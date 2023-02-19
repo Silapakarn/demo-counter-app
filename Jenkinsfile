@@ -63,23 +63,35 @@ pipeline{
         //         echo 'SonarQube'
         //     }
         // }
-          stage('Upload war file to nexus'){
+          stage('Upload file to Nexus Repository'){
             steps{
                script{
+                   def readPomVersion = readMavenPom file: 'pom.xml'
+                   def nexusRepo = readPomVersion.version.endsWith("SNAPSHOT") ? "demoapp-snapshot" : "demoapp-release"
                    nexusArtifactUploader artifacts: 
                    [
                        [
                            artifactId: 'springboot', 
-                           classifier: '', file: 'target/Uber', 
+                           classifier: '', file: 'target/Uber.jar', 
                            type: 'jar'
                         ]
                     ], credentialsId: 'nexus-auth', 
                     groupId: 'com.example', 
                     nexusUrl: 'localhost:8081', 
                     nexusVersion: 'nexus3', protocol: 'http', 
-                    repository: 'demoapp-release', 
-                    version: '1.0.0'
+                    repository: nexusRepo, 
+                    version: "${readPomVersion.version}"
                }
+            }
+        }
+        stage('Docker image Build'){
+            steps{
+                script{
+                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID'
+                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:v1.$BUILD_ID'
+                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:latest'
+
+                }
             }
         }
         
