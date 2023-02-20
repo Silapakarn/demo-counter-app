@@ -1,6 +1,6 @@
 #!/bin/sh
 
-FROM --platform=linux/amd64 maven as build
+FROM maven as build
 WORKDIR /app
 COPY . .
 RUN mvn install
