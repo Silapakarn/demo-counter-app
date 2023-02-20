@@ -1,13 +1,8 @@
 pipeline{
     
     agent any
-
-    tools{
-        maven '3.5.0'
-    }
     
     stages {
-        
         stage('Git Checkout'){
             
             steps{
@@ -18,6 +13,9 @@ pipeline{
             }
         }
         stage('UNIT Testing'){
+            tools{
+                maven '3.9.0'
+            }
             
             steps{
                 
@@ -28,6 +26,9 @@ pipeline{
             }
         }
         stage('Integration testing'){
+            tools{
+                maven '3.9.0'
+            }
             
             steps{
                 
@@ -38,6 +39,9 @@ pipeline{
             }
         }
         stage('Maven Build'){
+            tools{
+                maven '3.9.0'
+            }
             
             steps{
                 
@@ -87,27 +91,28 @@ pipeline{
         }
         stage('Docker image Build'){
             steps{
+                echo 'Docker image Build'
                 script{
-                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID'
+                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID .'
                     sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:v1.$BUILD_ID'
                     sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:latest'
 
                 }
-                echo 'Docker image Build'
+                
             }
         }
-        stage('Push Docker image'){
-            steps{
-                // script{
-                //         withCredentials([string(credentialsId: 'git_creds', variable: 'docker_hub_cred')]) {
-                //         sh 'docker login -u silapakarn -p ${docker_hub_cred}'
-                //         sh 'docker image push silapakarn/$JOB_NAME:v1.$BUILD_ID'
-                //         sh 'docker image push silapakarn/$JOB_NAME:latest'
-                //     }
-                // }
-                echo 'Push Docker image'
-            }
-        }
+        // stage('Push Docker image'){
+        //     steps{
+        //         // script{
+        //         //         withCredentials([string(credentialsId: 'git_creds', variable: 'docker_hub_cred')]) {
+        //         //         sh 'docker login -u silapakarn -p ${docker_hub_cred}'
+        //         //         sh 'docker image push silapakarn/$JOB_NAME:v1.$BUILD_ID'
+        //         //         sh 'docker image push silapakarn/$JOB_NAME:latest'
+        //         //     }
+        //         // }
+        //         echo 'Push Docker image'
+        //     }
+        // }
         
     }
     
