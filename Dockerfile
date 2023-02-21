@@ -1,10 +1,10 @@
-FROM maven as build
-WORKDIR /app
-COPY . .
-RUN mvn install
-
-FROM openjdk:11.0
+FROM adoptopenjdk:11.0.11_9-jre-hotspot
+USER root
 WORKDIR /app
 COPY --from=build /app/target/Uber.jar /app/
-EXPOSE 9090
+COPY ./startup.sh /startup.sh
+RUN chmod 754 /startup.sh
+# set the startup command to execute the jar
 CMD [ "java", "jar","Uber.jar" ]
+ENTRYPOINT ["bash","/startup.sh"]
+

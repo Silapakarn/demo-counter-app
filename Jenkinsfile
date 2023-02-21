@@ -1,121 +1,83 @@
-pipeline{
-    
+pipeline {
     agent any
-    
-    stages {
-        stage('Git Checkout'){
-            
-            steps{
-                
-                script{
-                    git branch: 'main', url: 'https://github.com/Silapakarn/demo-counter-app.git'
-                }
-            }
-        }
-        stage('UNIT Testing'){
-            tools{
-                maven '3.9.0'
-            }
-            
-            steps{
-                
-               script{
-                    
-                    sh 'mvn test'
-                }
-            }
-        }
-        stage('Integration testing'){
-            tools{
-                maven '3.9.0'
-            }
-            
-            steps{
-                
-               script{
-                    
-                    sh 'mvn verify -DskipUnitTests'
-                }
-            }
-        }
-        stage('Maven Build'){
-            tools{
-                maven '3.9.0'
-            }
-            
-            steps{
-                
-               script{
-                    
-                    sh 'mvn clean install'
-                }
-            }
-        }
-        // stage('SonarQube analysis'){
-            
-        //     steps{
-                
-        //     //   script{
-                    
-        //     //         
-        //     //     }
-        //         echo 'SonarQube'
-        //     }
-        // }
-        // stage('Quality Gate status'){
-        //     steps{
-        //         echo 'SonarQube'
-        //     }
-        // }
-          stage('Upload file to Nexus Repository'){
-            steps{
-               script{
-                //   def readPomVersion = readMavenPom file: 'pom.xml'
-                //   def nexusRepo = readPomVersion.version.endsWith("SNAPSHOT") ? "demoapp-snapshot" : "demoapp-release"
-                //   nexusArtifactUploader artifacts: 
-                //   [
-                //       [
-                //           artifactId: 'springboot', 
-                //           classifier: '', file: 'target/Uber.jar', 
-                //           type: 'jar'
-                //         ]
-                //     ], credentialsId: 'nexus-auth', 
-                //     groupId: 'com.example', 
-                //     nexusUrl: 'localhost:8081', 
-                //     nexusVersion: 'nexus3', protocol: 'http', 
-                //     repository: nexusRepo, 
-                //     version: "${readPomVersion.version}"
-                echo 'Upload file to Nexus Repository'
-               }
-            }
-        }
-        stage('Docker image Build'){
-            steps{
-                echo 'Docker image Build'
-                script{
-                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID .'
-                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:v1.$BUILD_ID'
-                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID silapakarn/$JOB_NAME:latest'
+    options { timestamps () }
 
+    stages {
+        stage('Build Jar') {
+            tools {
+                   jdk "jdk11"
+                   maven 'mvn'
                 }
-                
+            steps {
+                script{
+                    echo """Build Jar... ${git_url}"""
+                    sh """
+                        id
+                        pwd
+                        ls -altr
+                        """
+                    git branch: 'main', url: "${git_url}"
+                    
+                    // checkout(
+                    //         [$class: 'GitSCM', branches: [[name: """refs/tags/${image_version}"""]], 
+                    //         doGenerateSubmoduleConfigurations: false, 
+                    //         extensions: [
+                    //             [$class: 'SubmoduleOption', disableSubmodules: true, 
+                    //             parentCredentials: false, recursiveSubmodules: false, reference: '',
+                    //             trackingSubmodules: true]
+                                
+                    //         ], 
+                    //         submoduleCfg: [], 
+                    //         userRemoteConfigs: [[credentialsId: "git-clone", 
+                    //             url: "${git_url}"]]])
+                    if(params.build_jar_flag){
+                        sh """
+                        java -version
+                        id
+                        pwd
+                        ls -ltr
+                        
+                        mvn verify -DskipUnitTests
+                        mvn clean install
+                        
+                        ls -ltr target
+                        
+                        """
+                    }
+                }
             }
         }
-        // stage('Push Docker image'){
-        //     steps{
-        //         // script{
-        //         //         withCredentials([string(credentialsId: 'git_creds', variable: 'docker_hub_cred')]) {
-        //         //         sh 'docker login -u silapakarn -p ${docker_hub_cred}'
-        //         //         sh 'docker image push silapakarn/$JOB_NAME:v1.$BUILD_ID'
-        //         //         sh 'docker image push silapakarn/$JOB_NAME:latest'
-        //         //     }
-        //         // }
-        //         echo 'Push Docker image'
-        //     }
-        // }
-        
-    }
+
+        stage('Build Image') {
+            steps {
+                echo """Build Image... ${image_name}:${image_version}"""
+                // sh """ rm -rf *"""
+                script{
+                    if(params.build_image_flag){
+            
+                        sh """
+                        #ip a
+                        id
+                        pwd
+                        mv  ./target/$jar_name .
+                        
+                        ls -ltr
+                        
     
+                        ls
+                        
+                        #docker login  -u silapakarn -p P@ssw0rd123 
+                        docker build -t ${image_name}:${image_version} .
+                        docker image ls ${image_name}
+                        
+                        #docker tag ${image_name}:${image_version} ${image_name}:${image_version}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
     post {
         always {
             echo "You can always see this"
@@ -133,5 +95,5 @@ pipeline{
             echo "OMG! The build failed"
         }
     }
-        
+
 }
