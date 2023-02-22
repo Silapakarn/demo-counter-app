@@ -63,16 +63,26 @@ pipeline {
                         
                         ls -ltr
                         
-    
                         ls
                         
-                        #docker login  -u silapakarn -p P@ssw0rd123 
                         docker build -t ${image_name}:${image_version} .
                         docker image ls ${image_name}
-                        
-                        #docker tag ${image_name}:${image_version} ${image_name}:${image_version}
+                        docker login  -u ${dockerhub_username} -p ${dockerhub_password}
+                        docker tag ${image_name}:${image_version} silapakarn/demo_test_build:${image_version}
                         """
                     }
+                }
+            }
+        }
+        
+        stage('Push Image') {
+            steps {
+                script{
+                 
+                        sh """
+                            docker image ls ${image_name}
+                            docker push silapakarn/demo_test_build:${image_version}
+                        """       
                 }
             }
         }
