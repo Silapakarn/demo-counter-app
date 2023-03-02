@@ -1,4 +1,3 @@
-
 FROM adoptopenjdk:11.0.11_9-jre-hotspot
 USER root
 COPY target/Uber.jar /app/
