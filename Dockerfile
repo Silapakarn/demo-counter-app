@@ -1,13 +1,13 @@
 FROM adoptopenjdk:11.0.11_9-jre-hotspot
 USER root
-# COPY target/Uber.jar /app/
-ADD target/Uber.jar app.jar
-# COPY ./startup.sh /startup.sh
-# RUN chmod 754 /startup.sh
-# set the startup command to execute the jar
-EXPOSE 80
-# CMD [ "java", "jar","Uber.jar" ]
-ENTRYPOINT ["java","-jar","app.jar"]
+COPY target/Uber.jar /app/
+# @@ -6,4 +6,4 @@ COPY ./startup.sh /startup.sh
+COPY ./startup.sh /startup.sh
 
+RUN chmod 754 /startup.sh
+RUN mkdir /appdata
 
+EXPOSE 8088
+
+ENTRYPOINT ["bash","/startup.sh"]
 
